@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OPR GEN - SK Pos Kuala Mu</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- TAMBAH LIBRARY HTML2PDF DI SINI -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -74,7 +76,7 @@
 
         .p-img-wrapper {
             width: 100%;
-            height: 180px; /* Dibesarkan dari 140px ke 180px */
+            height: 180px; 
             border: 1px solid #e5e7eb;
             border-radius: 4px;
             overflow: hidden;
@@ -87,12 +89,12 @@
         .p-img-wrapper img {
             width: 100%;
             height: 100%;
-            object-fit: contain; /* Memastikan gambar tidak dipotong */
+            object-fit: contain; 
         }
 
         .p-img-placeholder {
             width: 100%;
-            height: 180px; /* Dibesarkan dari 140px ke 180px */
+            height: 180px; 
             border: 1px dashed #d1d5db;
             border-radius: 4px;
             display: flex;
@@ -128,40 +130,30 @@
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden">
         <div class="bg-white p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-3 max-w-xs text-center">
-            <i class="fas fa-spinner fa-spin text-4xl text-maroon-600 text-red-700"></i>
+            <i class="fas fa-spinner fa-spin text-4xl text-red-700"></i>
             <p id="loading-msg" class="text-sm font-semibold text-gray-700">Sila tunggu...</p>
+        </div>
+    </div>
+
+    <!-- Custom Modal UI -->
+    <div id="custom-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full text-center border border-gray-100 mx-auto">
+            <div id="custom-modal-icon" class="text-4xl mb-3 text-red-600"></div>
+            <h3 id="custom-modal-title" class="text-lg font-bold text-gray-800 mb-2"></h3>
+            <p id="custom-modal-message" class="text-sm text-gray-600 mb-5"></p>
+            <div id="custom-modal-actions" class="flex gap-2 justify-center"></div>
         </div>
     </div>
 
     <!-- Passcode Modal Utamakan SKPKM -->
     <div id="login-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-40 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center border border-gray-100">
-            <img src="https://upload.wikimedia.org/wikipedia/ms/thumb/0/07/Lencana_SK_Pos_Kuala_Mu.jpg/250px-Lencana_SK_Pos_Kuala_Mu.jpg" class="h-20 mx-auto mb-3 school-logo-img" alt="Logo">
+            <img src="https://i.imgur.com/nAgtS4k.png" class="h-20 mx-auto mb-3" alt="Logo">
             <h2 class="text-xl font-bold text-gray-800">SISTEM OPR SKPKM</h2>
             <p class="text-xs text-gray-500 mb-4">Sila masukkan kod laluan sekolah untuk mengakses sistem.</p>
             <input type="password" id="passcode" placeholder="Masukkan Kod Laluan" class="w-full border rounded-xl px-4 py-3 mb-3 text-center text-lg font-bold tracking-widest focus:ring-2 focus:ring-red-700 outline-none">
             <p id="login-error" class="text-xs text-red-600 hidden mb-3 font-semibold">Kod laluan tidak sah!</p>
             <button onclick="checkLogin()" class="w-full bg-red-800 hover:bg-red-900 text-white font-bold py-3 rounded-xl transition shadow-lg">MASUK SISTEM</button>
-        </div>
-    </div>
-
-    <!-- Modal Pentadbir / Admin -->
-    <div id="admin-modal" class="fixed inset-0 bg-black/60 z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold text-gray-800 text-base"><i class="fas fa-user-shield text-red-800 mr-2"></i>Akses Pentadbir</h3>
-                <button onclick="closeAdminModal()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
-            </div>
-            <div id="admin-login-sec">
-                <input type="password" id="admin-passcode" placeholder="Kata Laluan Admin" class="w-full border rounded-lg p-2 text-sm mb-2 text-center">
-                <p id="admin-error" class="text-xs text-red-600 hidden mb-2">Kata laluan salah!</p>
-                <button onclick="verifyAdmin()" class="w-full bg-red-800 text-white text-xs font-bold py-2 rounded-lg">SAHKAN</button>
-            </div>
-            <div id="admin-links-sec" class="hidden flex-col gap-2">
-                <label class="text-xs font-semibold text-gray-600">Tukar Logo Sekolah:</label>
-                <input type="file" id="logo-file-input" accept="image/*" onchange="uploadSchoolLogo(this)" class="text-xs text-gray-500 border rounded p-1">
-                <button onclick="resetSchoolLogo()" class="text-xs bg-gray-200 text-gray-700 py-1 rounded hover:bg-gray-300">Set Semula Logo Asal</button>
-            </div>
         </div>
     </div>
 
@@ -171,15 +163,16 @@
         <header class="bg-[#800000] shadow-md sticky top-0 z-30">
             <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
                 <div class="flex items-center gap-3">
-                    <img src="https://upload.wikimedia.org/wikipedia/ms/thumb/0/07/Lencana_SK_Pos_Kuala_Mu.jpg/250px-Lencana_SK_Pos_Kuala_Mu.jpg" class="h-10 w-auto school-logo-img bg-white p-0.5 rounded" alt="Logo SKPKM">
+                    <img src="https://i.imgur.com/nAgtS4k.png" class="h-10 w-auto bg-white p-0.5 rounded" alt="Logo SKPKM">
                     <div>
                         <h1 class="font-extrabold text-white text-sm md:text-base leading-tight">OPR GEN - SK POS KUALA MU</h1>
                         <p class="text-[10px] text-red-200">Sistem Laporan One Page Report Kualiti Tinggi</p>
                     </div>
                 </div>
-                <!-- Menambah Butang Log Keluar -->
+                <!-- Pautan E-Fail & Manual / Log Keluar -->
                 <div class="flex gap-2 items-center">
-                    <button onclick="openAdminModal()" class="text-white hover:text-gray-200 p-2 rounded-lg bg-red-900/50 border border-red-800 transition" title="Tetapan Admin"><i class="fas fa-cog"></i></button>
+                    <a href="https://drive.google.com/drive/folders/1JtWWd-WDlgaqLty6C2Y91iRn2OEpos94" target="_blank" class="text-white hover:text-gray-200 px-3 py-2 rounded-lg bg-red-900/50 border border-red-800 text-xs font-bold transition shadow-sm" title="E-Fail OPR GEN"><i class="fas fa-folder md:mr-1"></i><span class="hidden md:inline">E-Fail</span></a>
+                    <a href="https://drive.google.com/file/d/11eV8sKBMTstPI_h1PDYM5KTJIUL9Exwf/view?usp=drive_link" target="_blank" class="text-white hover:text-gray-200 px-3 py-2 rounded-lg bg-red-900/50 border border-red-800 text-xs font-bold transition shadow-sm" title="Manual Penggunaan"><i class="fas fa-book md:mr-1"></i><span class="hidden md:inline">Manual</span></a>
                     <button onclick="logoutApp()" class="text-white hover:text-gray-200 px-3 py-2 rounded-lg bg-red-900/50 border border-red-800 text-xs font-bold transition shadow-sm"><i class="fas fa-sign-out-alt md:mr-1"></i><span class="hidden md:inline"> LOG KELUAR</span></button>
                 </div>
             </div>
@@ -238,7 +231,11 @@
                             <label class="flex items-center gap-1"><input type="checkbox" class="chk_portfolio" value="ICT"> ICT / SSQS</label>
                             <label class="flex items-center gap-1"><input type="checkbox" class="chk_portfolio" value="DISIPLIN"> Disiplin & UBK</label>
                             <label class="flex items-center gap-1"><input type="checkbox" class="chk_portfolio" value="SUKAN"> Sukan & Permainan</label>
+                            <label class="flex items-center gap-1"><input type="checkbox" id="chk_panitia" onchange="togglePanitia()"> Panitia</label>
                             <label class="flex items-center gap-1"><input type="checkbox" id="chk_lain" onchange="togglePortfolioLain()"> Lain-lain</label>
+                        </div>
+                        <div id="div_panitia" class="mt-2 hidden">
+                            <input type="text" id="panitia_nama" placeholder="Contoh: PANITIA BAHASA MELAYU" class="w-full border rounded-lg p-2 text-xs">
                         </div>
                         <input type="text" id="portfolio_lain" placeholder="Nyatakan sub-unit lain..." class="w-full border rounded-lg p-2 text-xs mt-2 hidden">
                         <div id="div_menu_rmt" class="mt-2 hidden">
@@ -267,7 +264,26 @@
 
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 mb-1">Tempat & Sasaran</label>
-                            <input type="text" id="tempat" placeholder="Lokasi (Contoh: Bilik ICT)" required class="w-full border rounded-lg p-2 text-xs mb-1">
+                            
+                            <!-- Tukar Tempat jadi Tickbox -->
+                            <div class="bg-gray-50 p-2 rounded-lg border mb-1 text-[10px] grid grid-cols-1 md:grid-cols-2 gap-1.5 h-32 overflow-y-auto">
+                                <label class="flex items-center gap-1"><input type="checkbox" class="chk_tempat" value="Pejabat"> Pejabat</label>
+                                <label class="flex items-center gap-1"><input type="checkbox" class="chk_tempat" value="Bilik Guru"> Bilik Guru</label>
+                                <label class="flex items-center gap-1"><input type="checkbox" class="chk_tempat" value="Dewan Terbuka SK Pos Kuala Mu"> Dewan Terbuka SKPKM</label>
+                                <label class="flex items-center gap-1"><input type="checkbox" class="chk_tempat" value="Arena Kuala Mu"> Arena Kuala Mu</label>
+                                <label class="flex items-center gap-1"><input type="checkbox" class="chk_tempat" value="Bilik Pemulihan"> Bilik Pemulihan</label>
+                                <label class="flex items-center gap-1"><input type="checkbox" class="chk_tempat" value="Bilik Pendidikan Jasmani & Sukan"> Bilik PJ & Sukan</label>
+                                <label class="flex items-center gap-1"><input type="checkbox" class="chk_tempat" value="Bilik ICT"> Bilik ICT</label>
+                                <label class="flex items-center gap-1"><input type="checkbox" class="chk_tempat" value="Surau"> Surau</label>
+                                <label class="flex items-center gap-1"><input type="checkbox" class="chk_tempat" value="Pusat Sumber Sekolah"> Pusat Sumber Sekolah</label>
+                                <label class="flex items-center gap-1"><input type="checkbox" class="chk_tempat" value="Padang"> Padang</label>
+                                <label class="flex items-center gap-1"><input type="checkbox" class="chk_tempat" value="Astaka"> Astaka</label>
+                                <label class="flex items-center gap-1"><input type="checkbox" class="chk_tempat" value="Kantin"> Kantin</label>
+                                <label class="flex items-center gap-1"><input type="checkbox" class="chk_tempat" value="Prasekolah Puncak"> Prasekolah Puncak</label>
+                                <label class="flex items-center gap-1"><input type="checkbox" id="chk_tempat_lain" onchange="toggleTempatLain()"> Lain-lain (Sila Isi) :</label>
+                            </div>
+                            <input type="text" id="tempat_lain" placeholder="Nyatakan lokasi lain..." class="w-full border rounded-lg p-2 text-xs mb-1 hidden">
+
                             <input type="text" id="sasaran" placeholder="Sasaran (Contoh: Semua Murid Tahap 2)" required class="w-full border rounded-lg p-2 text-xs">
                         </div>
                     </div>
@@ -276,7 +292,7 @@
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 mb-1">Pegawai Bertanggungjawab (PIC) <span class="text-red-500">*</span></label>
                         <div id="pic_container" class="space-y-2">
-                            <select class="pic_select w-full border rounded-lg p-2 text-xs focus:ring-red-700"></select>
+                            <select class="pic_select w-full border rounded-lg p-2 text-xs focus:ring-red-700" onchange="handleGuruChange(this)"></select>
                         </div>
                         <button type="button" onclick="addPIC()" class="mt-2 text-xs text-red-800 font-bold hover:underline"><i class="fas fa-plus"></i> Tambah PIC Lain</button>
                     </div>
@@ -311,17 +327,10 @@
 
                     <!-- Muat Naik 4 Gambar -->
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 mb-2">Muat Naik 4 Keping Gambar Dokumentasi:</label>
+                        <label class="block text-xs font-semibold text-gray-700 mb-1">Muat Naik 4 Keping Gambar Dokumentasi:</label>
+                        <p class="text-[10px] text-gray-500 italic mb-3 font-medium">Disarankan untuk menggunakan gambar berbentuk "landscape / melintang" skala 4:3 / 16:9 untuk paparan OPR yang lebih kemas dan profesional.</p>
+                        
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            <template id="img-upload-tpl">
-                                <div class="border-2 border-dashed rounded-xl p-2 text-center relative bg-gray-50 hover:bg-gray-100 transition h-40 flex flex-col items-center justify-center">
-                                    <input type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10">
-                                    <i class="fas fa-camera text-gray-400 text-xl mb-1 block"></i>
-                                    <span class="text-[10px] text-gray-500 font-semibold block">Gambar</span>
-                                    <img class="hidden absolute inset-0 w-full h-full object-contain rounded-xl p-1 bg-white">
-                                </div>
-                            </template>
-                            
                             <!-- 4 Slots Gambar -->
                             <div class="border-2 border-dashed rounded-xl p-2 text-center relative bg-gray-50 h-40 flex flex-col items-center justify-center">
                                 <input type="file" accept="image/*" onchange="previewImage(this, 1)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10">
@@ -354,7 +363,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 mb-1">Disediakan Oleh (Nama Guru)</label>
-                            <select id="disediakan_oleh" required class="select-guru w-full border rounded-lg p-2 text-xs focus:ring-red-700"></select>
+                            <select id="disediakan_oleh" required class="select-guru w-full border rounded-lg p-2 text-xs focus:ring-red-700" onchange="handleGuruChange(this)"></select>
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-gray-700 mb-1">Jawatan Guru</label>
@@ -396,10 +405,10 @@
                     <!-- Dashboard Ringkasan Stats -->
                     <div id="dashboard-stats" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2"></div>
 
-                    <!-- Grid Kalendar -->
+                    <!-- Grid Kalendar (Bermula Isnin) -->
                     <div class="border rounded-xl overflow-hidden">
                         <div class="grid grid-cols-7 bg-gray-100 border-b text-center font-bold text-xs py-2 text-gray-700">
-                            <div>Ahad</div><div>Isnin</div><div>Selasa</div><div>Rabu</div><div>Khamis</div><div>Jumaat</div><div>Sabtu</div>
+                            <div>Isnin</div><div>Selasa</div><div>Rabu</div><div>Khamis</div><div>Jumaat</div><div>Sabtu</div><div>Ahad</div>
                         </div>
                         <div id="calendar-grid" class="grid grid-cols-7 min-h-[350px] auto-rows-fr bg-white"></div>
                     </div>
@@ -411,7 +420,6 @@
                 <div class="space-y-4">
                     <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow border">
                         <h2 class="font-bold text-gray-800 text-sm"><i class="fas fa-folder-open text-red-800 mr-2"></i>Senarai Laporan OPR</h2>
-                        <button onclick="loadOPRData()" class="text-xs bg-red-100 text-red-800 px-3 py-2 rounded-lg font-bold hover:bg-red-200"><i class="fas fa-sync mr-1"></i> Refresh Data</button>
                     </div>
                     <div id="opr-list-container" class="space-y-3"></div>
                 </div>
@@ -442,11 +450,11 @@
             <div>
                 <div id="print-header-block" class="p-header pb-2 mb-2 flex justify-between items-center">
                     <div class="flex items-center gap-3">
-                        <img src="https://upload.wikimedia.org/wikipedia/ms/thumb/0/07/Lencana_SK_Pos_Kuala_Mu.jpg/250px-Lencana_SK_Pos_Kuala_Mu.jpg" class="h-14 w-auto school-logo-img" alt="Logo">
+                        <img src="https://i.imgur.com/nAgtS4k.png" class="h-14 w-auto" alt="Logo">
                         <div>
                             <h2 class="font-extrabold text-sm tracking-wide text-gray-900">ONE PAGE REPORT (OPR)</h2>
                             <h1 class="font-black text-base text-gray-900 leading-tight">SEKOLAH KEBANGSAAN POS KUALA MU</h1>
-                            <p class="text-[9px] text-gray-600 uppercase font-semibold">[ LASAH, 31100 SUNGAI SIPUT (U), PERAK ]</p>
+                            <p class="text-[9px] text-gray-600 uppercase font-semibold">LASAH, 31100 SUNGAI SIPUT (U), PERAK</p>
                         </div>
                     </div>
                     <!-- Badge Unit Kanan Atas Letterhead -->
@@ -527,42 +535,105 @@
     </div>
 
     <script>
-        // URL WEB APP DITETAPKAN SECARA PERMANENT (HARDCODED)
-        const DEFAULT_APP_URL = "https://script.google.com/macros/s/AKfycbz_LA2txiIyzRKBWdB4YiTs1l8Sw2aFIORv7oqSpx7nT9oLjKD-sxgJctZL_ktvrX_T/exec"; 
+        // RUANG UNTUK MASUKKAN URL APPSCRIPT BAHARU ANDA 
+        // 👇 SILA GANTIKAN "MASUKKAN_URL_WEB_APP_ANDA_DI_SINI" DENGAN URL YANG ANDA COPY DARI APPSCRIPT 👇
+        const DEFAULT_APP_URL = "https://script.google.com/macros/s/AKfycbwZ9Gupr8NBoMtQ2rkUcHSg9UO_Jm9_6TfazKjI012hDAntA8hVzUcnbrjfa-VkpOMvyA/exec"; 
+        
         let APP_URL = DEFAULT_APP_URL; 
 
-        const DEFAULT_LOGO = "https://upload.wikimedia.org/wikipedia/ms/thumb/0/07/Lencana_SK_Pos_Kuala_Mu.jpg/250px-Lencana_SK_Pos_Kuala_Mu.jpg";
         let localOPRs = JSON.parse(localStorage.getItem('skpkm_oprs')) || [];
         let editId = null;
 
-        // Penukaran Format Tarikh kepada dd/mm/yyyy
-        function formatDateDMY(dateStr) {
-            if (!dateStr) return '';
-            try {
-                // Buang cap masa (Timezone T/Z) jika ia datang dari Google Sheets format ISO
-                let pureDate = dateStr.split('T')[0].split(' ')[0];
-                const parts = pureDate.split('-');
-                if (parts.length === 3) {
-                    return `${parts[2]}/${parts[1]}/${parts[0]}`;
-                }
-                return pureDate;
-            } catch(e) {
-                return dateStr;
-            }
+        // FUNGSI MODAL KASTAM (MENGGANTIKAN ALERT, CONFIRM, PROMPT)
+        function showAlert(msg, title = "Makluman") {
+            const modal = document.getElementById('custom-modal');
+            document.getElementById('custom-modal-title').innerText = title;
+            document.getElementById('custom-modal-message').innerText = msg;
+            document.getElementById('custom-modal-icon').innerHTML = '<i class="fas fa-info-circle text-blue-500"></i>';
+            document.getElementById('custom-modal-actions').innerHTML = `
+                <button onclick="document.getElementById('custom-modal').classList.add('hidden')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition shadow">Tutup</button>
+            `;
+            modal.classList.remove('hidden');
         }
 
-        const guruList = [
-            "En. Mohd Yunos bin Chulan", "En. Mohd Hafis bin Ismail", "En. Akmal Fahmi bin Ahmad",
-            "Tn. Syed Shukri bin Syed Alwi", "En. Muhammad Akmal bin Razali", "En. Muhammad Faiz bin Hazanuar",
-            "En. Muhammad Amirul Asyraf bin Amairuddin", "En. Muhammad Amer Fahmi bin Norfaizal",
-            "En. Muhammad Fikri Daniel bin Abu Bakar", "En. Muhammad Safuan bin Abdul Jalil",
-            "Cik Khairun Nadhirah Syahanim binti Mohd Ali", "Cik Nur Syifaa Asila binti Abdul Rahman",
-            "En. Eko Prastio bin Darus", "En. Mohd Saiful Farizal bin Abu Bakar", "Pn Hasneywati binti Yusof",
-            "En. Akimi bin Aning"
-        ];
+        function showConfirm(msg, onConfirm, title = "Pengesahan") {
+            const modal = document.getElementById('custom-modal');
+            document.getElementById('custom-modal-title').innerText = title;
+            document.getElementById('custom-modal-message').innerText = msg;
+            document.getElementById('custom-modal-icon').innerHTML = '<i class="fas fa-exclamation-triangle text-red-500"></i>';
+            document.getElementById('custom-modal-actions').innerHTML = `
+                <button id="btn-modal-cancel" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition shadow">Batal</button>
+                <button id="btn-modal-confirm" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition shadow">Pasti</button>
+            `;
+            document.getElementById('btn-modal-cancel').onclick = () => modal.classList.add('hidden');
+            document.getElementById('btn-modal-confirm').onclick = () => { modal.classList.add('hidden'); onConfirm(); };
+            modal.classList.remove('hidden');
+        }
 
-        // Panggil fungsi ini serta-merta supaya logo di halaman Log Masuk terus bertukar
-        loadCustomLogo();
+        function showPrompt(msg, onConfirm, title = "Input Diperlukan") {
+            const modal = document.getElementById('custom-modal');
+            document.getElementById('custom-modal-title').innerText = title;
+            document.getElementById('custom-modal-message').innerText = msg;
+            document.getElementById('custom-modal-icon').innerHTML = '<i class="fas fa-edit text-blue-500"></i>';
+            document.getElementById('custom-modal-actions').innerHTML = `
+                <div class="w-full flex flex-col gap-3">
+                    <input type="text" id="modal-input" class="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none text-center" placeholder="Taip di sini...">
+                    <div class="flex gap-2 justify-center mt-1">
+                        <button id="btn-modal-cancel" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-6 rounded-lg transition shadow">Batal</button>
+                        <button id="btn-modal-confirm" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition shadow">Simpan</button>
+                    </div>
+                </div>
+            `;
+            const inputEl = document.getElementById('modal-input');
+            document.getElementById('btn-modal-cancel').onclick = () => { modal.classList.add('hidden'); onConfirm(null); };
+            document.getElementById('btn-modal-confirm').onclick = () => { modal.classList.add('hidden'); onConfirm(inputEl.value); };
+            modal.classList.remove('hidden');
+            setTimeout(() => inputEl.focus(), 100);
+        }
+
+        // FUNGSI MEMBETULKAN MASALAH TARIKH / ZON MASA
+        function parseLocalDate(dateStr) {
+            if (!dateStr) return null;
+            let d = new Date(dateStr);
+            if (!isNaN(d.getTime())) return d;
+            return null;
+        }
+
+        // Format DD/MM/YYYY yang kebal dari anjakan tarikh Google Sheets
+        function formatDateDMY(dateStr) {
+            let d = parseLocalDate(dateStr);
+            if(d) {
+                let day = d.getDate().toString().padStart(2, '0');
+                let month = (d.getMonth() + 1).toString().padStart(2, '0');
+                let year = d.getFullYear();
+                return `${day}/${month}/${year}`;
+            }
+            return dateStr || '';
+        }
+
+        // Format YYYY-MM-DD untuk membolehkan input jenis 'date' berfungsi dan selamat
+        function formatDateInput(dateStr) {
+            let d = parseLocalDate(dateStr);
+            if(d) {
+                let day = d.getDate().toString().padStart(2, '0');
+                let month = (d.getMonth() + 1).toString().padStart(2, '0');
+                let year = d.getFullYear();
+                return `${year}-${month}-${day}`;
+            }
+            return dateStr || '';
+        }
+
+        // Senarai Guru Dikemaskini
+        const guruList = [
+            "Mohd Yunos bin Chulan", "Mohd Hafis bin Ismail", "Akmal Fahmi bin Ahmad",
+            "Syed Shukri bin Syed Alwi", "Muhammad Akmal bin Razali", "Muhammad Faiz bin Hazanuar",
+            "Muhammad Amirul Asyraf bin Amairuddin", "Muhammad Amer Fahmi bin Norfaizal",
+            "Muhammad Fikri Daniel bin Abu Bakar", "Muhammad Safuan bin Abdul Jalil",
+            "Khairun Nadhirah Syahanim binti Mohd Ali", "Nur Syifaa Asila binti Abdul Rahman",
+            "Eko Prastio bin Darus", "Mohd Saiful Farizal bin Abu Bakar", "Hasneywati binti Yusof",
+            "Akimi bin Aning", "Amira Syahirah binti Abdul Aziz", "Nursyamira binti Khairol Anuar", 
+            "Muhammad Fariz Shazwan bin Badri Sham"
+        ];
 
         window.onload = () => {
             populateGuruDropdowns();
@@ -594,34 +665,6 @@
             if(overlay) overlay.classList.add('hidden');
         }
 
-        function loadCustomLogo() {
-            const savedLogo = localStorage.getItem('skpkm_custom_logo');
-            if (savedLogo) applyLogoToAll(savedLogo);
-        }
-        function applyLogoToAll(logoSrc) {
-            document.querySelectorAll('.school-logo-img').forEach(img => img.src = logoSrc);
-        }
-        function uploadSchoolLogo(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const base64Logo = e.target.result;
-                    localStorage.setItem('skpkm_custom_logo', base64Logo);
-                    applyLogoToAll(base64Logo);
-                    alert("Logo sekolah berjaya dikemas kini!");
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-        function resetSchoolLogo() {
-            if (confirm("Adakah anda pasti mahu menetapkan semula logo ke logo asal?")) {
-                localStorage.removeItem('skpkm_custom_logo');
-                applyLogoToAll(DEFAULT_LOGO);
-                document.getElementById('logo-file-input').value = '';
-                alert("Logo sekolah telah ditetapkan semula.");
-            }
-        }
-
         function checkLogin() {
             const val = document.getElementById('passcode').value;
             if(val === 'aba4054' || val === 'ABA4054' || val === 'skpkm' || val === 'SKPKM') {
@@ -632,31 +675,11 @@
             }
         }
 
-        // Fungsi Log Keluar Sistem
         function logoutApp() {
             document.getElementById('app-container').classList.add('hidden');
             document.getElementById('login-modal').classList.remove('hidden');
             document.getElementById('passcode').value = '';
             document.getElementById('login-error').classList.add('hidden');
-        }
-
-        function openAdminModal() {
-            document.getElementById('admin-modal').style.display = 'flex';
-            document.getElementById('admin-login-sec').classList.remove('hidden');
-            document.getElementById('admin-links-sec').classList.add('hidden');
-            document.getElementById('admin-passcode').value = '';
-        }
-        function closeAdminModal() { document.getElementById('admin-modal').style.display = 'none'; }
-        
-        function verifyAdmin() {
-            const val = document.getElementById('admin-passcode').value;
-            if(val === 'SKPKM' || val === 'skpkm') {
-                document.getElementById('admin-login-sec').classList.add('hidden');
-                document.getElementById('admin-links-sec').classList.remove('hidden');
-                document.getElementById('admin-links-sec').classList.add('flex');
-            } else {
-                document.getElementById('admin-error').classList.remove('hidden');
-            }
         }
 
         function switchTab(tabId) {
@@ -689,33 +712,46 @@
             const menuDiv = document.getElementById('div_menu_rmt');
             document.getElementById('chk_rmt').checked ? menuDiv.classList.remove('hidden') : menuDiv.classList.add('hidden');
         }
+        function togglePanitia() {
+            const div = document.getElementById('div_panitia');
+            document.getElementById('chk_panitia').checked ? div.classList.remove('hidden') : div.classList.add('hidden');
+        }
         function togglePortfolioLain() {
             const input = document.getElementById('portfolio_lain');
             document.getElementById('chk_lain').checked ? input.classList.remove('hidden') : input.classList.add('hidden');
         }
+        function toggleTempatLain() {
+            const input = document.getElementById('tempat_lain');
+            document.getElementById('chk_tempat_lain').checked ? input.classList.remove('hidden') : input.classList.add('hidden');
+        }
 
-        function populateGuruDropdowns() {
+        function handleGuruChange(sel) {
+            if(sel.value === 'TAMBAH') {
+                showPrompt("Sila masukkan nama guru baharu:", (namaBaru) => {
+                    if(namaBaru && namaBaru.trim() !== '') {
+                        let newName = namaBaru.trim();
+                        guruList.push(newName);
+                        populateGuruDropdowns(newName);
+                    } else {
+                        sel.selectedIndex = 0;
+                    }
+                }, "Tambah Guru Baharu");
+            }
+        }
+
+        function populateGuruDropdowns(autoSelectName = null) {
             let options = `<option value="">Pilih Guru...</option>`;
             guruList.forEach(g => options += `<option value="${g}">${g}</option>`);
             options += `<option value="TAMBAH">++ Tambah Guru Baharu ++</option>`;
 
-            document.querySelectorAll('.pic_select').forEach(sel => sel.innerHTML = options);
-            document.querySelectorAll('.select-guru').forEach(sel => sel.innerHTML = options);
-            
-            const selects = document.querySelectorAll('.pic_select, .select-guru');
-            selects.forEach(sel => {
-                sel.addEventListener('change', function() {
-                    if(this.value === 'TAMBAH') {
-                        let namaBaru = prompt("Sila masukkan nama guru baharu:");
-                        if(namaBaru && namaBaru.trim() !== '') {
-                            guruList.push(namaBaru);
-                            populateGuruDropdowns();
-                            this.value = namaBaru; 
-                        } else {
-                            this.selectedIndex = 0;
-                        }
-                    }
-                });
+            document.querySelectorAll('.pic_select, .select-guru').forEach(sel => {
+                let currentVal = sel.value;
+                sel.innerHTML = options;
+                if(autoSelectName && currentVal === 'TAMBAH') {
+                    sel.value = autoSelectName;
+                } else {
+                    sel.value = currentVal;
+                }
             });
         }
 
@@ -723,13 +759,11 @@
             const container = document.getElementById('pic_container');
             let sel = document.createElement('select');
             sel.className = 'pic_select w-full border rounded-lg p-2 text-xs focus:ring-red-700 mt-2';
-            sel.innerHTML = document.querySelector('.pic_select').innerHTML;
-            sel.addEventListener('change', function() {
-                 if(this.value === 'TAMBAH') {
-                    let namaBaru = prompt("Sila masukkan nama guru baharu:");
-                    if(namaBaru) { guruList.push(namaBaru); populateGuruDropdowns(); this.value = namaBaru; }
-                 }
-            });
+            sel.setAttribute('onchange', 'handleGuruChange(this)');
+            let options = `<option value="">Pilih Guru...</option>`;
+            guruList.forEach(g => options += `<option value="${g}">${g}</option>`);
+            options += `<option value="TAMBAH">++ Tambah Guru Baharu ++</option>`;
+            sel.innerHTML = options;
             container.appendChild(sel);
         }
 
@@ -778,10 +812,17 @@
             let portfolios = [];
             if(document.getElementById('chk_rmt').checked) portfolios.push('RMT');
             document.querySelectorAll('.chk_portfolio').forEach(cb => { if(cb.checked) portfolios.push(cb.value); });
+            if(document.getElementById('chk_panitia').checked) portfolios.push(document.getElementById('panitia_nama').value);
             if(document.getElementById('chk_lain').checked) portfolios.push(document.getElementById('portfolio_lain').value);
 
             let pics = [];
             document.querySelectorAll('.pic_select').forEach(sel => { if(sel.value) pics.push(sel.value); });
+
+            // Bina Senarai Tempat
+            let tempatArr = [];
+            document.querySelectorAll('.chk_tempat').forEach(cb => { if(cb.checked) tempatArr.push(cb.value); });
+            if(document.getElementById('chk_tempat_lain').checked) tempatArr.push(document.getElementById('tempat_lain').value);
+            let finalTempat = tempatArr.join(', ') || '-';
 
             const hariMulaVal = document.getElementById('hari_mula').value;
             const hariAkhirVal = document.getElementById('hari_akhir').value;
@@ -794,13 +835,13 @@
                 unit: unit,
                 portfolio: portfolios.join(', '),
                 menu_rmt: document.getElementById('chk_rmt').checked ? document.getElementById('menu_rmt').value : '-',
-                tarikh_mula: document.getElementById('tarikh_mula').value,
+                tarikh_mula: document.getElementById('tarikh_mula').value, // Disimpan sebagai String format YYYY-MM-DD
                 tarikh_akhir: document.getElementById('tarikh_akhir').value,
                 hari_mula: hariMulaVal,
                 hari_akhir: hariAkhirVal,
                 hari: combinedHari,
                 masa: document.getElementById('masa').value,
-                tempat: document.getElementById('tempat').value,
+                tempat: finalTempat,
                 sasaran: document.getElementById('sasaran').value,
                 pic: pics.join(', '),
                 objektif: document.getElementById('objektif').value || "-",
@@ -814,10 +855,10 @@
                 images: JSON.parse(JSON.stringify(imagesData))
             };
 
-            showLoading("Menyimpan & Memuat Naik Data...");
+            showLoading("Menyimpan & Memuat Naik Data (Sila tunggu sebentar jika terdapat gambar besar)...");
 
             if(editId) {
-                let idx = localOPRs.findIndex(r => r.id === editId);
+                let idx = localOPRs.findIndex(r => String(r.id) === String(editId));
                 if(idx > -1) localOPRs[idx] = reportData;
             } else {
                 localOPRs.push(reportData);
@@ -830,7 +871,7 @@
             }
 
             hideLoading();
-            alert("OPR Berjaya Disimpan!");
+            showAlert("OPR Berjaya Disimpan!", "Berjaya");
             resetForm();
             switchTab('tab-senarai');
         }
@@ -846,8 +887,8 @@
                 
                 if(result.status === 'success' && action !== 'DELETE') {
                     if(result.data) {
-                        let idx = localOPRs.findIndex(r => r.id === result.data.id);
-                        if(idx > -1) localOPRs[idx] = result.data;
+                        let idx = localOPRs.findIndex(r => String(r.id) === String(result.data.id));
+                        if(idx > -1) localOPRs[idx] = result.data; // Timpa cache tempatan dengan pautan Drive sebenar
                         localStorage.setItem('skpkm_oprs', JSON.stringify(localOPRs));
                     }
                 }
@@ -882,7 +923,9 @@
             editId = null;
             document.getElementById('unit_lain').classList.add('hidden');
             document.getElementById('div_menu_rmt').classList.add('hidden');
+            document.getElementById('div_panitia').classList.add('hidden');
             document.getElementById('portfolio_lain').classList.add('hidden');
+            document.getElementById('tempat_lain').classList.add('hidden');
             
             imagesData = {1:'', 2:'', 3:'', 4:''};
             for(let i=1; i<=4; i++){
@@ -898,7 +941,8 @@
             const y = parseInt(document.getElementById('filter_tahun').value);
             const u = document.getElementById('filter_unit_cal').value;
             
-            const firstDay = new Date(y, m, 1).getDay();
+            // Format Hari Bermula dengan Isnin: Ahad=6, Isnin=0, Selasa=1, ...
+            const firstDay = (new Date(y, m, 1).getDay() + 6) % 7;
             const daysInMonth = new Date(y, m + 1, 0).getDate();
             
             let grid = document.getElementById('calendar-grid');
@@ -908,7 +952,8 @@
             updateDashboard(m, y);
 
             let currentData = localOPRs.filter(r => {
-                let rDate = new Date(r.tarikh_mula);
+                let rDate = parseLocalDate(r.tarikh_mula);
+                if(!rDate) return false;
                 let matchMY = rDate.getMonth() === m && rDate.getFullYear() === y;
                 let matchUnit = u === 'All' || r.unit === u;
                 return matchMY && matchUnit;
@@ -917,7 +962,10 @@
             for(let i = 0; i < firstDay; i++) grid.innerHTML += `<div class="border-b border-r bg-gray-50"></div>`;
 
             for(let d = 1; d <= daysInMonth; d++) {
-                let dayEvents = currentData.filter(r => new Date(r.tarikh_mula).getDate() === d);
+                let dayEvents = currentData.filter(r => {
+                    let dObj = parseLocalDate(r.tarikh_mula);
+                    return dObj && dObj.getDate() === d;
+                });
                 let eventsHtml = dayEvents.map(ev => {
                     let color = getUnitColor(ev.unit);
                     return `<div onclick="viewOPR('${ev.id}')" class="text-[10px] leading-tight ${color} text-white p-1 rounded mb-1 cursor-pointer truncate shadow-sm hover:opacity-80">${ev.nama_program}</div>`;
@@ -936,8 +984,8 @@
             let stats = { "Pentadbiran":0, "Kurikulum":0, "Hal Ehwal Murid (HEM)":0, "Kokurikulum":0, "Kelab Kebajikan Kakitangan":0, "Prasekolah":0, "Lain-lain":0 };
             
             localOPRs.forEach(r => {
-                let rDate = new Date(r.tarikh_mula);
-                if(rDate.getMonth() === m && rDate.getFullYear() === y) {
+                let rDate = parseLocalDate(r.tarikh_mula);
+                if(rDate && rDate.getMonth() === m && rDate.getFullYear() === y) {
                     if(stats[r.unit] !== undefined) stats[r.unit]++;
                     else stats["Lain-lain"]++;
                 }
@@ -1013,15 +1061,48 @@
         }
 
         function triggerMobilePrint() {
-            try {
-                window.print();
-            } catch(e) {
-                alert("Gagal membuka dialog cetak. Sila pastikan pelayar telefon membenarkan dialog pop-up.");
+            // Semak jika aplikasi berada di dalam Google Sites (iframe)
+            const isIframe = window !== window.top;
+            
+            if (isIframe) {
+                // Beri makluman sedang memproses
+                showAlert("Sedang menjana PDF. Sila tunggu sebentar...", "Muat Turun PDF");
+                
+                const element = document.getElementById('print-area');
+                const controls = document.getElementById('print-controls');
+                
+                // Sorokkan butang kawalan sementara supaya tidak masuk dalam PDF
+                controls.style.display = 'none';
+                
+                // Konfigurasi PDF
+                const opt = {
+                    margin:       0,
+                    filename:     'OPR_SKPKM.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true },
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                
+                // Proses dan muat turun PDF, kemudian tunjukkan semula butang
+                html2pdf().set(opt).from(element).save().then(() => {
+                    controls.style.display = 'flex';
+                    document.getElementById('custom-modal').classList.add('hidden');
+                }).catch(err => {
+                    controls.style.display = 'flex';
+                    showAlert("Ralat ketika menjana PDF.", "Ralat");
+                });
+            } else {
+                // Jika bukan dalam Google Sites (contohnya GitHub Pages), guna print biasa
+                try {
+                    window.print();
+                } catch(e) {
+                    showAlert("Gagal membuka dialog cetak. Sila pastikan pelayar membenarkan dialog pop-up.", "Ralat Sistem");
+                }
             }
         }
 
         function editOPR(id) {
-            const data = localOPRs.find(r => r.id === id);
+            const data = localOPRs.find(r => String(r.id) === String(id));
             if(!data) return;
             
             editId = id;
@@ -1037,17 +1118,62 @@
             }
             handleUnitChange();
 
-            document.getElementById('chk_rmt').checked = data.portfolio ? data.portfolio.includes('RMT') : false;
-            document.querySelectorAll('.chk_portfolio').forEach(cb => { cb.checked = data.portfolio ? data.portfolio.includes(cb.value) : false; });
+            // Memproses Semula Checkbox Portfolio & Panitia
+            let portArr = String(data.portfolio || '').split(',').map(s => s.trim());
+            document.getElementById('chk_rmt').checked = portArr.includes('RMT');
+            document.querySelectorAll('.chk_portfolio').forEach(cb => { cb.checked = portArr.includes(cb.value); });
+            
+            let predefinedPort = ["RMT", "ICT", "DISIPLIN", "SUKAN"];
+            let unknownPorts = portArr.filter(p => !predefinedPort.includes(p) && p !== '' && p !== '-');
+            
+            let panitiaName = unknownPorts.find(p => String(p).toLowerCase().includes('panitia'));
+            if(panitiaName) {
+                document.getElementById('chk_panitia').checked = true;
+                document.getElementById('panitia_nama').value = panitiaName;
+                togglePanitia();
+                unknownPorts = unknownPorts.filter(p => p !== panitiaName);
+            } else {
+                document.getElementById('chk_panitia').checked = false;
+                document.getElementById('panitia_nama').value = '';
+                togglePanitia();
+            }
+            if(unknownPorts.length > 0) {
+                document.getElementById('chk_lain').checked = true;
+                document.getElementById('portfolio_lain').value = unknownPorts.join(', ');
+                togglePortfolioLain();
+            } else {
+                document.getElementById('chk_lain').checked = false;
+                document.getElementById('portfolio_lain').value = '';
+                togglePortfolioLain();
+            }
+
             toggleRMTMenu();
             if(data.menu_rmt && data.menu_rmt !== '-') document.getElementById('menu_rmt').value = data.menu_rmt;
 
-            document.getElementById('tarikh_mula').value = data.tarikh_mula;
-            document.getElementById('tarikh_akhir').value = data.tarikh_akhir;
+            // Menggunakan formatDateInput untuk mengekalkan nilai kalendar dengan tepat (Fix anjakan tarikh)
+            document.getElementById('tarikh_mula').value = formatDateInput(data.tarikh_mula);
+            document.getElementById('tarikh_akhir').value = formatDateInput(data.tarikh_akhir);
             document.getElementById('hari_mula').value = data.hari_mula || '';
             document.getElementById('hari_akhir').value = data.hari_akhir || '';
             document.getElementById('masa').value = data.masa;
-            document.getElementById('tempat').value = data.tempat;
+            
+            // Memproses Semula Checkbox Tempat
+            let tempatArrEdit = String(data.tempat || '').split(',').map(s => s.trim());
+            let predefinedTempat = ["Pejabat", "Bilik Guru", "Dewan Terbuka SK Pos Kuala Mu", "Arena Kuala Mu", "Bilik Pemulihan", "Bilik Pendidikan Jasmani & Sukan", "Bilik ICT", "Surau", "Pusat Sumber Sekolah", "Padang", "Astaka", "Kantin", "Prasekolah Puncak"];
+            document.querySelectorAll('.chk_tempat').forEach(cb => {
+                cb.checked = tempatArrEdit.includes(cb.value);
+            });
+            let customTempat = tempatArrEdit.filter(t => !predefinedTempat.includes(t) && t !== '' && t !== '-');
+            if(customTempat.length > 0) {
+                document.getElementById('chk_tempat_lain').checked = true;
+                document.getElementById('tempat_lain').value = customTempat.join(', ');
+                document.getElementById('tempat_lain').classList.remove('hidden');
+            } else {
+                document.getElementById('chk_tempat_lain').checked = false;
+                document.getElementById('tempat_lain').value = '';
+                document.getElementById('tempat_lain').classList.add('hidden');
+            }
+
             document.getElementById('sasaran').value = data.sasaran;
             
             let pics = (data.pic || '').split(', ');
@@ -1081,17 +1207,17 @@
             window.scrollTo(0,0);
         }
 
-        async function deleteOPR(id) {
-            if(confirm("Adakah anda pasti mahu memadam laporan ini?")) {
-                localOPRs = localOPRs.filter(r => r.id !== id);
+        function deleteOPR(id) {
+            showConfirm("Adakah anda pasti mahu memadam laporan ini?", async () => {
+                localOPRs = localOPRs.filter(r => String(r.id) !== String(id));
                 localStorage.setItem('skpkm_oprs', JSON.stringify(localOPRs));
                 renderOPRList();
                 if(APP_URL.startsWith('http')) await syncToCloud({ id: id }, 'DELETE');
-            }
+            });
         }
 
         function cetakOPR(id, doPrint = true) {
-            const data = localOPRs.find(r => r.id === id);
+            const data = localOPRs.find(r => String(r.id) === String(id));
             if(!data) return;
 
             const printArea = document.getElementById('print-area');
@@ -1116,9 +1242,10 @@
             
             // Paparkan Sub-Unit / Portfolio
             let subUnitEl = document.getElementById('p_badge_portfolio');
-            if(data.portfolio && data.portfolio.trim() !== '' && data.portfolio !== '-') {
+            let strPortfolio = String(data.portfolio || '');
+            if(strPortfolio && strPortfolio.trim() !== '' && strPortfolio !== '-') {
                 subUnitEl.classList.remove('hidden');
-                subUnitEl.textContent = data.portfolio.toUpperCase();
+                subUnitEl.textContent = strPortfolio.toUpperCase();
             } else {
                 subUnitEl.classList.add('hidden');
             }
@@ -1138,7 +1265,8 @@
             document.getElementById('p_hari_masa').textContent = `${hariDisplay}${masaDisplay}`;
             document.getElementById('p_sasaran').textContent = data.sasaran || '-';
 
-            if(data.portfolio && data.portfolio.includes('RMT') && data.menu_rmt !== '-') {
+            // PEMBAIKAN: Gunakan strPortfolio yang dijamin String supaya tidak crash
+            if(strPortfolio.includes('RMT') && data.menu_rmt !== '-') {
                 document.getElementById('p_menu_label').classList.remove('hidden');
                 document.getElementById('p_menu').textContent = data.menu_rmt;
             } else {
@@ -1161,8 +1289,17 @@
             
             // Paparkan 4 gambar dalam Grid 2x2
             for(let i=1; i<=4; i++) {
-                if(data.images && data.images[i] && data.images[i].length > 10) {
-                    imgCont.innerHTML += `<div class="p-img-wrapper"><img src="${data.images[i]}" alt="Gambar Dokumentasi ${i}"></div>`;
+                let imgSrc = data.images && data.images[i] ? data.images[i] : '';
+                
+                // PENYELESAIAN GOOGLE DRIVE IMAGE: 
+                // Gunakan proksi CORS percuma (wsrv.nl) untuk membolehkan html2pdf muat turun gambar
+                if(imgSrc && imgSrc.includes('drive.google.com/uc?')) {
+                    let fileId = imgSrc.split('id=')[1].split('&')[0];
+                    imgSrc = `https://wsrv.nl/?url=drive.google.com/uc?id=${fileId}`;
+                }
+                
+                if(imgSrc && imgSrc.length > 10) {
+                    imgCont.innerHTML += `<div class="p-img-wrapper"><img src="${imgSrc}" alt="Gambar Dokumentasi ${i}" crossorigin="anonymous"></div>`;
                 } else {
                     imgCont.innerHTML += `<div class="p-img-placeholder">TIADA GAMBAR ${i}</div>`;
                 }
@@ -1172,16 +1309,24 @@
             printArea.classList.remove('hidden');
             document.getElementById('app-container').classList.add('hidden');
 
-            // Force DOM Reflow supaya elemen cetak dipaparkan tanpa perlu 'setTimeout' (Mobile friendly)
+            // Force DOM Reflow
             void printArea.offsetHeight;
 
             if(doPrint) {
-                try {
-                    window.print();
-                } catch(err) {
-                    console.error("Ralat mencetak:", err);
-                    alert("Sila gunakan butang 'Cetak / Simpan PDF' di atas jika pelayar telefon anda menyekat cetakan automatik.");
-                }
+                setTimeout(() => {
+                    const isIframe = window !== window.top;
+                    if(isIframe) {
+                        // Jangan paksa auto-print jika dalam Google Sites, arahkan pengguna tekan butang
+                        showAlert("Oleh kerana anda menggunakan Google Sites, sila klik butang hijau 'Cetak / Simpan PDF' di atas untuk memuat turun dokumen.", "Makluman Google Sites");
+                    } else {
+                        try {
+                            window.print();
+                        } catch(err) {
+                            console.error("Ralat mencetak:", err);
+                            showAlert("Sila gunakan butang 'Cetak / Simpan PDF' di atas.", "Makluman");
+                        }
+                    }
+                }, 500); 
             }
         }
     </script>
